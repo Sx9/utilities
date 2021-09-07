@@ -28,8 +28,12 @@ from openpyxl.styles import Alignment
 # from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
 class ExcelMLLogWriter(object):
+    ''' Uses OpenPyXL to create / update a MicroSoft Excel file with two tabs/worksheets
+        One for the training logs and one for the prediction logs
+         When prediction run data is received with the timestamp of training based on model used, it will copy training record from training worksheet over to the new prediction record in the prediction sheet '''
 
     def __init__(self, strFileAbsolutePath):
+        ''' Initializer. It will create the file if it does not exist. If it exists and is valid it will open and load it. If it is not valid, then it will raise a Value Error with reason why '''
 
         binSuccess = True
         self.strFileAbsolutePath = strFileAbsolutePath
@@ -54,6 +58,7 @@ class ExcelMLLogWriter(object):
             raise ValueError("Workbook initialization failed. File [%s] exists but something wrong with it (%s). Will not overwrite it!" % (strFileAbsolutePath, strResults))
 
     def fnInitializer(self):
+        ''' Initializes columns, style and font elements '''
 
         # VARIABLE DECLARATION
         self.strVersion = "0030"
@@ -88,6 +93,7 @@ class ExcelMLLogWriter(object):
         return True
 
     def fnFindFile(self, strFileAbsolutePath):
+        ''' Looks for the file and validates it if it exists '''
 
         # IF XLS FILE EXISTS
         if os.path.exists(strFileAbsolutePath):
@@ -147,6 +153,7 @@ class ExcelMLLogWriter(object):
         return True, "FILE OK", objWorkbook, objTrainingWorksheet, objPredictionWorksheet
 
     def fnCreateFile(self, strFileAbsolutePath):
+        ''' Creates the file if it does not exist including the two worksheets with appropriate header rows '''
 
         # CREATE AND PREPARE EXCEL FILE
         self.objWorkbook = Workbook()
@@ -191,6 +198,7 @@ class ExcelMLLogWriter(object):
         return self.objWorkbook, self.objTrainingWorksheet, self.objPredictionWorksheet
 
     def fnTrainingUpdate(self, lstTrainingColumns):
+        ''' Once the object has been initialized, this method is called with a list of training details as per list in initializer '''
 
         # FIND FIRST EMPTY ROW
         intRun = 0
@@ -214,6 +222,8 @@ class ExcelMLLogWriter(object):
         return True
 
     def fnPredictionUpdate(self, strTrainingTimeStamp, lstPredictionColumns):
+        ''' Once the object has been initialized, this method is called with the timestamp of the training run from which the model and weights were used and a list of prediction details as per list in initializer
+            It copies over the training record to the prediction sheet in the prediction record automatically. If it does not find the training record, it will raise a ValueError with reason for failure '''
 
         # FIND WHICH COLUMN HAS TRAINING TIMESTAMP
         intTSColumn = 0
